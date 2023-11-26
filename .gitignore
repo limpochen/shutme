@@ -1,4 +1,5 @@
 shutme
 *.exe
+*.tar
 *.gz
 *.zip
