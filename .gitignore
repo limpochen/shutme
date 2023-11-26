@@ -1,0 +1,6 @@
+shutme
+*.exe
+*.tar
+*.gz
+*.zip
+*.log
