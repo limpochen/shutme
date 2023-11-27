@@ -1,11 +1,15 @@
-package cmds
+package probe
 
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"log"
 	"net"
 	"os"
+	"shutme/cmds"
+	"shutme/llog"
+	"shutme/shutmedown"
 	"time"
 )
 
@@ -119,43 +123,41 @@ func ProbeRemote() {
 
 	//fmt.Println("Probing the host:", Flag_t)
 	//MyLog(Info, "Start probing the remote host: "+Flag_t)
-	log.Println("Start probing the remote host: " + Flag_t)
+	llog.InfoLog("Start probing the remote host: " + cmds.Flag_t)
 
 	for {
-		_, err := Ping(Flag_t)
+		_, err := Ping(cmds.Flag_t)
 		if err != nil { // 服务模式：记着处理好错误返回方式
 			iFailed++
-			if iFailed <= Flag_n {
+			if iFailed <= cmds.Flag_n {
 				if iFailed == 0 { // Detected offline for the first time
 					//MyLog(Warning, "Detected remote host offline, possibly due to a power outage.")
-					log.Println("Detected remote host offline, possibly due to a power outage.")
+					llog.InfoLog("Detected remote host offline, possibly due to a power outage.")
 				}
-				log.Printf("The network is disconnected:%d/%d\n", iFailed, Flag_n)
+				llog.InfoLog(fmt.Sprintf("The network is disconnected:%d/%d", iFailed, cmds.Flag_n))
 			}
 			iOnline = hostOffline
 		} else {
 			if iOnline != hostOnline {
-				log.Println("The network is connected.")
+				llog.InfoLog("The network is connected.")
 			}
 			if iFailed > 0 { //iOnline == hostOffline
 				//MyLog(Info, "The network recovered.")
-				log.Println("The network recovered.")
+				llog.InfoLog("The network recovered.")
 			}
 			iFailed = 0
 			iOnline = hostOnline
 		}
 
-		if iFailed == Flag_n {
-			err := ShutMeRun()
+		if iFailed == cmds.Flag_n {
+			err := shutmedown.ShutMeRun()
 			if err != nil {
-				//MyLog(Error, fmt.Sprintf("ShutMe failed: %v.", err))
-				log.Printf("ShutMe failed: %v.\n", err)
+				llog.ErrorLog(fmt.Sprintf("ShutMe failed: %v.\n", err))
 			} else {
 				log.Println("ShutMe down.")
-				//MyLog(Warning, fmt.Sprintf("ShutMe command \"%s\" has been triggered.", ShutMeCmd))
-				log.Printf("ShutMe command \"%s\" has been triggered.\n", ShutMeCmd)
+				llog.WarnLog(fmt.Sprintf("ShutMe command \"%s\" has been triggered.\n", shutmedown.ShutMeCmd))
 			}
 		}
-		time.Sleep(time.Second * time.Duration(Flag_i))
+		time.Sleep(time.Second * time.Duration(cmds.Flag_i))
 	}
 }

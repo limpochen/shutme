@@ -3,6 +3,7 @@ package serv
 import (
 	"fmt"
 	"shutme/cmds"
+	"shutme/shutmedown"
 	"strconv"
 
 	"github.com/kardianos/service"
@@ -35,13 +36,13 @@ func ServInit() (service.Service, error) {
 		"-t", cmds.Flag_t,
 		"-n", strconv.Itoa(cmds.Flag_n),
 		"-i", strconv.Itoa(cmds.Flag_i),
-		"-c", fmt.Sprintf("\"%s\"", cmds.ShutMeCmd),
+		"-c", fmt.Sprintf("\"%s\"", shutmedown.ShutMeCmd),
 	}
 
 	// system service description
 	desc := fmt.Sprintf("Probe the remote host %s every %d seconds, ", cmds.Flag_t, cmds.Flag_i)
 	desc += fmt.Sprintf("detect offline for %d times (%d minutes)", cmds.Flag_n, cmds.Flag_i*cmds.Flag_n/60)
-	desc += fmt.Sprintf(", and execute: \"%s\".", cmds.ShutMeCmd)
+	desc += fmt.Sprintf(", and execute: \"%s\".", shutmedown.ShutMeCmd)
 
 	svcConfig := &service.Config{
 		Name:             ServName,
@@ -66,10 +67,6 @@ func ServCtrl(servs service.Service) error {
 	var err error
 	switch cmds.Flag_s {
 	case "install":
-		if !cmds.Confirm() {
-			return nil
-		}
-
 		err = servs.Install()
 		if err != nil {
 			return err

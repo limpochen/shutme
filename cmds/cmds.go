@@ -18,8 +18,7 @@ import (
 -h	bool		Try the hibernation command (suspend to hard disk)
 */
 var ExecPath string
-var ShutMeCmd string
-var MyLogFile string
+var BaseName string
 
 var (
 	Flag_s string
@@ -36,7 +35,7 @@ func init() {
 	ExecPath, _ = os.Executable()
 	ExecPath, _ = filepath.EvalSymlinks(ExecPath)
 	ext := filepath.Ext(ExecPath)
-	MyLogFile = strings.TrimSuffix(ExecPath, ext) + ".log"
+	BaseName = strings.TrimSuffix(ExecPath, ext)
 	ExecPath = filepath.Dir(ExecPath)
 }
 
@@ -75,40 +74,15 @@ func CmdLine() error {
 		return fmt.Errorf("the -c, -f, -h options are not allowed to be used simultaneously")
 	}
 
-	if len(Flag_c) != 0 {
-		ShutMeCmd = Flag_c
-	} else {
-		ShutMeCmd = ShutMeCmdPerse()
-		if ShutMeCmd == "" {
-			return fmt.Errorf("the shutdown command on this OS is not currently supported, you can specify it with option \"-c\"")
+	/*
+		if len(Flag_c) != 0 {
+			ShutMeCmd = Flag_c
+		} else {
+			ShutMeCmd = ShutMeCmdPerse()
+			if ShutMeCmd == "" {
+				return fmt.Errorf("the shutdown command on this OS is not currently supported, you can specify it with option \"-c\"")
+			}
 		}
-	}
+	*/
 	return nil
-}
-
-// Print some necessary information and confirm that you want to continue
-// Param : none
-// Return: boolean
-func Confirm() bool {
-	var res string
-
-	fmt.Printf("Attempt to detect remote host status... ")
-	if _, err := Ping(Flag_t); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed.\nCommunication cannot be established with the remote host %s, program terminates.\n", Flag_t) //todo
-		return false
-	} else {
-		fmt.Printf("OK.\n")
-	}
-
-	if !Flag_y {
-
-		fmt.Println("WARNING, Once the network failure occurs after the program is running, it will trigger the shutdown behavior.")
-		fmt.Printf("Are you sure you want to do this? \nPress 'YES' to continue:")
-		fmt.Scanln(&res)
-		if strings.ToUpper(res) != "YES" {
-			return false
-		}
-	}
-
-	return true
 }

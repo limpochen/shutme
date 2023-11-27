@@ -1,9 +1,10 @@
 package serv
 
 import (
-	"log"
 	"os"
 	"shutme/cmds"
+	"shutme/llog"
+	"shutme/probe"
 
 	"github.com/kardianos/service"
 )
@@ -16,7 +17,7 @@ type program struct{}
 func (p *program) Start(s service.Service) error {
 	// Start should not block. Do the actual work async.
 	go p.run()
-	log.Println("Shutme Service started.")
+	llog.InfoLog("Shutme Service started.")
 	return nil
 }
 
@@ -25,7 +26,7 @@ func (p *program) Start(s service.Service) error {
 // Return: error
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
-	log.Println("Shutme Service stopped.")
+	llog.InfoLog("Shutme Service stopped.")
 	return nil
 }
 
@@ -33,10 +34,10 @@ func (p *program) Stop(s service.Service) error {
 // Param : none
 // Return: none
 func (p *program) run() {
-	if _, err := cmds.Ping(cmds.Flag_t); err != nil {
+	if _, err := probe.Ping(cmds.Flag_t); err != nil {
 		//cmds.MyLog(cmds.Error, "Communication cannot be established with the remote host, service terminates.\n")
-		log.Printf("Communication cannot be established with the remote host, service terminates.\n\n")
+		llog.ErrorLog("Communication cannot be established with the remote host, service terminates.\n\n")
 		os.Exit(1)
 	}
-	cmds.ProbeRemote()
+	probe.ProbeRemote()
 }
