@@ -17,7 +17,7 @@ type program struct{}
 func (p *program) Start(s service.Service) error {
 	// Start should not block. Do the actual work async.
 	go p.run()
-	llog.InfoLog("Shutme Service started.")
+	llog.Info("Shutme Service started.")
 	return nil
 }
 
@@ -26,7 +26,7 @@ func (p *program) Start(s service.Service) error {
 // Return: error
 func (p *program) Stop(s service.Service) error {
 	// Stop should not block. Return with a few seconds.
-	llog.InfoLog("Shutme Service stopped.")
+	llog.Info("Shutme Service stopped.")
 	return nil
 }
 
@@ -36,7 +36,7 @@ func (p *program) Stop(s service.Service) error {
 func (p *program) run() {
 	if _, err := probe.Ping(cmds.Flag_t); err != nil {
 		//cmds.MyLog(cmds.Error, "Communication cannot be established with the remote host, service terminates.\n")
-		llog.ErrorLog("Communication cannot be established with the remote host, service terminates.\n\n")
+		llog.Error("Communication cannot be established with the remote host, service terminates.")
 		os.Exit(1)
 	}
 	probe.ProbeRemote()

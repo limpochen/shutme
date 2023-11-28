@@ -11,7 +11,6 @@ import (
 	"shutme/llog"
 	"shutme/probe"
 	"shutme/serv"
-	"shutme/shutmedown"
 	"strings"
 	"syscall"
 
@@ -19,40 +18,35 @@ import (
 )
 
 func main() {
+	var status string
+
 	fmt.Printf("ShutMe Helper v0.8.1.0 Copyright(C) 2023  limpo@live.com\n\n")
 
-	err := cmds.CmdLine()
+	err := cmds.CmdPerser()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:", err)
-		//flag.PrintDefaults()
-		//log.Println(err)
+		fmt.Fprintln(os.Stderr, "Flags:", err)
+		fmt.Println("Use '-h' for more information.")
 		os.Exit(1)
 	}
 
-	if cmds.Flag_c == "" {
-		err = shutmedown.ShutMeCmdPerse()
-		if err != nil {
-			fmt.Fprint(os.Stderr, err)
-			os.Exit(1)
+	if cmds.Flag_s == "install" || (cmds.Flag_s == "" && service.Interactive()) {
+		if !Confirm() {
+			return
 		}
 	}
 
 	if len(cmds.Flag_s) != 0 {
-		if cmds.Flag_s == "install" {
-			if !Confirm() {
-				os.Exit(0)
-			}
-		}
 		servs, err := serv.ServInit()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, fmt.Sprint("Service initialize failed: ", err))
 			os.Exit(1)
 		}
-		err = serv.ServCtrl(servs)
+		status, err = serv.ServCtrl(servs)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+			fmt.Fprintln(os.Stderr, fmt.Sprint("Service ", cmds.Flag_s, " failed: ", err))
 			os.Exit(1)
 		}
+		fmt.Println(status)
 		return
 	}
 
@@ -76,10 +70,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		return
-	}
-
-	if !Confirm() {
 		return
 	}
 

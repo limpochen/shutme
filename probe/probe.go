@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"shutme/cmds"
 	"shutme/llog"
-	"shutme/shutmedown"
 	"time"
 )
 
@@ -123,7 +121,7 @@ func ProbeRemote() {
 
 	//fmt.Println("Probing the host:", Flag_t)
 	//MyLog(Info, "Start probing the remote host: "+Flag_t)
-	llog.InfoLog("Start probing the remote host: " + cmds.Flag_t)
+	llog.Info("Start probing the remote host: " + cmds.Flag_t)
 
 	for {
 		_, err := Ping(cmds.Flag_t)
@@ -132,30 +130,29 @@ func ProbeRemote() {
 			if iFailed <= cmds.Flag_n {
 				if iFailed == 0 { // Detected offline for the first time
 					//MyLog(Warning, "Detected remote host offline, possibly due to a power outage.")
-					llog.InfoLog("Detected remote host offline, possibly due to a power outage.")
+					llog.Info("Detected remote host offline, possibly due to a power outage.")
 				}
-				llog.InfoLog(fmt.Sprintf("The network is disconnected:%d/%d", iFailed, cmds.Flag_n))
+				llog.Info(fmt.Sprintf("The network is disconnected:%d/%d", iFailed, cmds.Flag_n))
 			}
 			iOnline = hostOffline
 		} else {
 			if iOnline != hostOnline {
-				llog.InfoLog("The network is connected.")
+				llog.Info("The network is connected.")
 			}
 			if iFailed > 0 { //iOnline == hostOffline
 				//MyLog(Info, "The network recovered.")
-				llog.InfoLog("The network recovered.")
+				llog.Info("The network recovered.")
 			}
 			iFailed = 0
 			iOnline = hostOnline
 		}
 
 		if iFailed == cmds.Flag_n {
-			err := shutmedown.ShutMeRun()
+			err := cmds.ShutMeRun()
 			if err != nil {
-				llog.ErrorLog(fmt.Sprintf("ShutMe failed: %v.\n", err))
+				llog.Error(fmt.Sprint("ShutMe failed: ", err))
 			} else {
-				log.Println("ShutMe down.")
-				llog.WarnLog(fmt.Sprintf("ShutMe command \"%s\" has been triggered.\n", shutmedown.ShutMeCmd))
+				llog.Warn("ShutMe command \"" + cmds.Flag_c + "\" has been triggered")
 			}
 		}
 		time.Sleep(time.Second * time.Duration(cmds.Flag_i))

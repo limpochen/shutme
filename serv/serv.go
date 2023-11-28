@@ -2,15 +2,14 @@ package serv
 
 import (
 	"fmt"
+	"os"
 	"shutme/cmds"
-	"shutme/shutmedown"
-	"strconv"
 
 	"github.com/kardianos/service"
 )
 
 const (
-	ServName = "ShutMe"
+	ServName = "shutme"
 	DispName = "ShutMe Helper"
 )
 
@@ -32,17 +31,24 @@ func ServInit() (service.Service, error) {
 	var err error
 	// Reassemble command-line arguments into system service calls
 
-	args := []string{
-		"-t", cmds.Flag_t,
-		"-n", strconv.Itoa(cmds.Flag_n),
-		"-i", strconv.Itoa(cmds.Flag_i),
-		"-c", fmt.Sprintf("\"%s\"", shutmedown.ShutMeCmd),
+	var args []string
+	for i := 1; i < len(os.Args); i++ {
+		if os.Args[i] == "-s" {
+			i++
+			continue
+		}
+
+		if os.Args[i] == "-y" {
+			continue
+		}
+
+		args = append(args, os.Args[i])
 	}
 
 	// system service description
 	desc := fmt.Sprintf("Probe the remote host %s every %d seconds, ", cmds.Flag_t, cmds.Flag_i)
-	desc += fmt.Sprintf("detect offline for %d times (%d minutes)", cmds.Flag_n, cmds.Flag_i*cmds.Flag_n/60)
-	desc += fmt.Sprintf(", and execute: \"%s\".", shutmedown.ShutMeCmd)
+	desc += fmt.Sprintf("detect offline for %d times (about %d minutes)", cmds.Flag_n, cmds.Flag_i*cmds.Flag_n/60)
+	desc += fmt.Sprintf(", and execute: \"%s\".", cmds.Flag_c)
 
 	svcConfig := &service.Config{
 		Name:             ServName,
@@ -63,59 +69,67 @@ func ServInit() (service.Service, error) {
 // System service command line control
 // Param : service.Service
 // Return: error
-func ServCtrl(servs service.Service) error {
-	var err error
+func ServCtrl(servs service.Service) (status string, err error) {
 	switch cmds.Flag_s {
 	case "install":
 		err = servs.Install()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		fmt.Println("The service is installed.")
+		status = "installed"
 		fallthrough
 
 	case "start":
 		err = servs.Start()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		fmt.Println("The service is started.")
+		if status == "" {
+			status = "started"
+		} else {
+			status += " and started"
+		}
 
 	case "stop":
 		err = servs.Stop()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		fmt.Println("The service is stopped")
+		status = "stopped"
 
 	case "restart":
 		err = servs.Restart()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		fmt.Println("The service is restarted.")
+		status = "restarted."
 
 	case "uninstall":
 		st, _ := servs.Status()
 		if st == service.StatusRunning {
 			service.Control(servs, "stop")
+			status = "stopped"
 		}
 
 		err = servs.Uninstall()
 		if err != nil {
-			return err
+			return "", err
 		}
 
-		fmt.Println("The service is removed.")
+		if status == "" {
+			status = "removed"
+		} else {
+			status += " and removed"
+		}
 
 	default:
 		err = fmt.Errorf("error in service control command")
-		return err
+		return "", err
 	}
 
-	return nil
+	return "Service is " + status + ".", nil
 }

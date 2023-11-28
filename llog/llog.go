@@ -6,33 +6,41 @@ import (
 )
 
 const (
-	Debug = iota
-	Info
-	Warn
-	Error
-	Panic
-	Fetal
+	lDebug = iota
+	lInfo
+	lWarn
+	lError
+	lPanic
+	lFetal
 )
 
 var LogFile = cmds.BaseName + ".log"
 
 func levelLog(level int, logString string) {
 	l := []string{"DEBUG", "INFO", "WARN", "ERROR", "PANIC", "FETAL"}
-	log.Println("["+l[level]+"]", logString)
+	log.Printf("[%v] %v\n", l[level], logString)
 }
 
-func DebugLog(String string) {
-	levelLog(Debug, String)
+func Debug(String string) {
+	levelLog(lDebug, String)
 }
 
-func InfoLog(String string) {
-	levelLog(Info, String)
+func Info(String string) {
+	levelLog(lInfo, String)
 }
 
-func WarnLog(String string) {
-	levelLog(Warn, String)
+func Warn(String string) {
+	levelLog(lWarn, String)
 }
 
-func ErrorLog(String string) {
-	levelLog(Error, String)
+func Error(String string) {
+	levelLog(lError, String)
+}
+
+func Panic(String string) {
+	levelLog(lPanic, String)
+}
+
+func Fetal(String string) {
+	levelLog(lFetal, String)
 }
